@@ -1,7 +1,6 @@
 package com.example.ignitis_job_test.DAO;
 
 import com.example.ignitis_job_test.DTO.UserDto;
-import com.example.ignitis_job_test.Exceptions.EmptyException;
 import com.example.ignitis_job_test.JooqGenerated.Tables;
 import com.example.ignitis_job_test.JooqGenerated.tables.Admins;
 import com.example.ignitis_job_test.JooqGenerated.tables.Users;
@@ -25,8 +24,6 @@ public class UserDao {
         int adminRow = this.dslContext.selectFrom(Tables.ADMINS).where(Admins.ADMINS.ADMIN_NAME.eq(userDto.getCreatedBy())).execute();
         if (adminRow == 0) {
             return "Admin has to exist";
-        } else if (userDto.getCreatedBy() == null) {
-            throw new EmptyException("");
         } else if (userDto.getUserName() != null) {
             this.dslContext.insertInto(Tables.USERS)
                     .set(Users.USERS.USER_NAME, userDto.getUserName())
@@ -39,14 +36,15 @@ public class UserDao {
         }
     }
 
-    public void deleteUser(String userName) throws NotFoundException {
+    public Object deleteUser(String userName) {
         int deletedRow = this.dslContext
                 .deleteFrom(Tables.USERS)
                 .where(Users.USERS.USER_NAME.eq(userName))
                 .execute();
         if (deletedRow == 0) {
-            throw new NotFoundException("User " + userName + " not found");
+            return new NotFoundException("User " + userName + " not found");
         }
+        return "Deleted successfully";
     }
 }
 
