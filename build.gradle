@@ -1,0 +1,83 @@
+buildscript {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath 'org.jooq:jooq-codegen:3.18.4'
+        classpath 'com.h2database:h2:2.1.214'
+    }
+}
+
+plugins {
+    id 'java'
+    id 'org.liquibase.gradle' version '2.0.2'
+    id 'org.springframework.boot' version '2.5.0'
+    id 'io.spring.dependency-management' version '1.1.0'
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+group = 'com.example'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '17'
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+
+dependencies {
+    implementation 'org.jooq:jooq:3.18.4'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.liquibase:liquibase-core:4.5.0'
+    implementation 'org.hibernate:hibernate-core'
+    implementation 'org.liquibase:liquibase-groovy-dsl:3.0.3'
+    implementation 'com.h2database:h2:2.1.214'
+    implementation 'io.springfox:springfox-boot-starter:3.0.0'
+    implementation 'io.springfox:springfox-swagger2:3.0.0'
+    implementation 'io.springfox:springfox-swagger-ui:3.0.0'
+    implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+
+import org.jooq.codegen.GenerationTool
+import org.jooq.meta.jaxb.*
+
+
+task generate {
+    def outputDirectory = projectDir.toString() + '/src/main/java'
+    def configuration = new Configuration()
+    configuration
+            .withJdbc(new Jdbc()
+                    .withDriver('org.h2.Driver')
+                    .withUrl('jdbc:h2:tcp://localhost:9090/file:~/testdb')
+                    .withUser('sa')
+                    .withPassword(''))
+            .withGenerator(new Generator()
+                    .withDatabase(new Database()
+                            .withInputSchema('IGNITIS'))
+                    .withGenerate(new Generate())
+                    .withTarget(new Target()
+                            .withPackageName('com.example.ignitis_job_test.JooqGenerated')
+                            .withDirectory(outputDirectory)))
+
+    doLast {
+        GenerationTool.generate(configuration)
+    }
+}
+
